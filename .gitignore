@@ -1,5 +1,4 @@
 __pycache__/
 *.pyc
-*.pth
 .superpowers/
 models/*.pth
