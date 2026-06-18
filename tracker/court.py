@@ -6,6 +6,8 @@ MatchType = Literal["singles", "doubles"]
 
 class CourtCalibrator:
     def __init__(self, match_type: MatchType):
+        # match_type stored for future use: singles/doubles affects service-box widths
+        # but does not change the 4-corner homography computation.
         self._match_type = match_type
         self._corners: list[tuple[int, int]] = []
         self._homography: np.ndarray | None = None
@@ -26,7 +28,15 @@ class CourtCalibrator:
     def _compute(self) -> None:
         src = np.array(self._corners, dtype=np.float32)
         dst = np.array([[0, 0], [1, 0], [1, 1], [0, 1]], dtype=np.float32)
-        self._homography, _ = cv2.findHomography(src, dst)
+        H, _ = cv2.findHomography(src, dst)
+        if H is None:
+            raise ValueError("Cannot compute homography: corners may be collinear or coincident")
+        self._homography = H
+
+    def reset(self) -> None:
+        """Clear calibration state so a new set of corners can be clicked."""
+        self._corners = []
+        self._homography = None
 
     def to_court_coords(self, px: int, py: int) -> tuple[float, float]:
         if self._homography is None:

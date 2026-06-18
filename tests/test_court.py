@@ -58,3 +58,18 @@ def test_raises_before_calibrated():
     c = CourtCalibrator("singles")
     with pytest.raises(RuntimeError):
         c.to_court_coords(200, 200)
+
+def test_raises_on_degenerate_corners():
+    c = CourtCalibrator("singles")
+    c.on_click(100, 50)
+    c.on_click(200, 50)
+    c.on_click(300, 50)
+    with pytest.raises(ValueError, match="collinear"):
+        c.on_click(400, 50)  # 4th click triggers _compute with collinear points
+
+def test_reset_clears_calibration():
+    c = calibrated()
+    assert c.is_calibrated
+    c.reset()
+    assert not c.is_calibrated
+    assert c.get_corners() == []
