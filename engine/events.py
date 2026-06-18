@@ -33,6 +33,7 @@ class EventDetector:
         self._last_event_t: float = -999.0
 
     def update(self, detection: Detection | None) -> ScoringEvent | None:
+        # Debounce uses wall-clock time; Detection.timestamp is for external logging only.
         now = time.monotonic()
 
         if detection is not None and detection.confidence >= self._conf_threshold:
@@ -44,9 +45,9 @@ class EventDetector:
             return None
 
         # Shuttle disappeared — check for landing
-        high = [d for d in self._buf if d.confidence >= self._conf_threshold]
-        if len(high) >= self._min_tracked_frames:
-            last = high[-1]
+        # _buf only holds detections that passed conf_threshold, no re-filtering needed
+        if len(self._buf) >= self._min_tracked_frames:
+            last = self._buf[-1]
             if 0.0 <= last.x <= 1.0 and 0.0 <= last.y <= 1.0:
                 side = "left" if last.x >= 0.5 else "right"
                 event = self._emit(side, "landing", now)
@@ -62,10 +63,10 @@ class EventDetector:
         # Past left baseline: P2 hit it out → P1 scores (left)
         if d.x < 0.0:
             return "left"
-        # Sideline out: use direction of travel from buffer
+        # Sideline out: infer direction from last known dx; default "right" when ambiguous
         if len(self._buf) >= 1:
             dx = d.x - self._buf[-1].x
-            return "right" if dx > 0 else "left"
+            return "right" if dx >= 0 else "left"
         return "right"
 
     def _emit(

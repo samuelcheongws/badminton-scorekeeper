@@ -1,4 +1,3 @@
-import time
 import pytest
 from engine.events import EventDetector, Detection, ScoringEvent
 
@@ -72,3 +71,36 @@ def test_reset_clears_state():
     d.reset()
     event = d.update(None)
     assert event is None
+
+def test_out_sideline_top_moving_right_scores_right():
+    # shuttle moving right goes out via top sideline → P1 hit it → P2 scores
+    d = EventDetector(conf_threshold=0.5, min_tracked_frames=1)
+    d.update(det(0.4, 0.5, t=0.0))   # in-bounds, moving right
+    event = d.update(det(0.5, -0.1, t=0.1))  # out via top sideline
+    assert event is not None
+    assert event.side == "right"
+    assert event.event_type == "out"
+
+def test_out_sideline_top_moving_left_scores_left():
+    # shuttle moving left goes out via top sideline → P2 hit it → P1 scores
+    d = EventDetector(conf_threshold=0.5, min_tracked_frames=1)
+    d.update(det(0.6, 0.5, t=0.0))   # in-bounds, moving left
+    event = d.update(det(0.5, -0.1, t=0.1))  # out via top sideline
+    assert event is not None
+    assert event.side == "left"
+    assert event.event_type == "out"
+
+def test_reset_clears_debounce_timer():
+    d = EventDetector(conf_threshold=0.5, min_tracked_frames=3, debounce_s=60.0)
+    # trigger an event to start the debounce
+    for i in range(3):
+        d.update(det(0.75, 0.5, t=float(i) * 0.033))
+    e1 = d.update(None)
+    assert e1 is not None
+    # without reset, next event would be debounced (debounce_s=60s)
+    d.reset()
+    # after reset, debounce should be cleared so next event fires
+    for i in range(3):
+        d.update(det(0.75, 0.5, t=float(i) * 0.033))
+    e2 = d.update(None)
+    assert e2 is not None  # NOT debounced because reset cleared the timer
