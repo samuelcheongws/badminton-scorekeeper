@@ -1,4 +1,3 @@
-import pytest
 from engine.score import ScoreEngine
 
 def test_initial_state():
@@ -109,13 +108,28 @@ def test_reset_game_no_op_when_match_complete():
     assert s.match_complete  # still complete
 
 def test_reset_match_clears_everything():
-    e = ScoreEngine(first_server="left")
-    for _ in range(21):
-        e.add_point("left")
-    e.add_point("right")
+    e = ScoreEngine(first_server="right")  # use right so we can detect if it doesn't restore
+    e.add_point("left")  # left scores, server switches to left
+    assert e.state.serving_side == "left"  # confirm server switched
     s = e.reset_match()
     assert s.points == [0, 0]
     assert s.games == [0, 0]
     assert s.game_number == 1
     assert not s.match_complete
     assert s.winner is None
+    assert s.serving_side == "right"  # restored to first_server
+
+def test_initial_state_right_server():
+    e = ScoreEngine(first_server="right")
+    s = e.state
+    assert s.serving_side == "right"
+    assert s.service_court == "right"  # score 0, even
+
+def test_game_number_stays_at_winning_game():
+    e = ScoreEngine(first_server="left")
+    for _ in range(21):
+        e.add_point("left")   # game 1 won
+    assert e.state.game_number == 2  # correctly advances to game 2
+    for _ in range(21):
+        e.add_point("left")   # game 2 won, match complete
+    assert e.state.game_number == 2  # stays at 2, not 3

@@ -67,10 +67,11 @@ class ScoreEngine:
         if winner_idx is not None:
             self._games[winner_idx] += 1
             self._points = [0, 0]
-            self._game_number += 1
             if self._games[winner_idx] >= GAMES_TO_WIN:
                 self._match_complete = True
                 self._winner = "left" if winner_idx == 0 else "right"
+            else:
+                self._game_number += 1
 
     def reset_game(self) -> ScoreState:
         if self._match_complete:
