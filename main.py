@@ -84,9 +84,9 @@ def main() -> None:
                 now = time.monotonic()
                 if now - last_r < 1.0:
                     score.reset_match()
-                    detector.reset()
                 else:
                     score.reset_game()
+                detector.reset()
                 last_r = now
     finally:
         cap.release()

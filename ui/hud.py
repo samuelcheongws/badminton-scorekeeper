@@ -42,10 +42,10 @@ class HUDRenderer:
         # — Centre —
         game_lbl = f"GAME {state.game_number}"
         (gw, _), _ = cv2.getTextSize(game_lbl, FONT, 0.5, 1)
-        cv2.putText(frame, game_lbl, (w // 2 - gw // 2, top), FONT, 0.5, DARK, 1, cv2.LINE_AA)
+        cv2.putText(frame, game_lbl, (w // 2 - gw // 2, top), FONT, 0.5, GREY, 1, cv2.LINE_AA)
         hint = "R = reset game   RR = reset match"
         (hw, _), _ = cv2.getTextSize(hint, FONT, 0.35, 1)
-        cv2.putText(frame, hint, (w // 2 - hw // 2, top + 22), FONT, 0.35, DARK, 1, cv2.LINE_AA)
+        cv2.putText(frame, hint, (w // 2 - hw // 2, top + 22), FONT, 0.35, GREY, 1, cv2.LINE_AA)
 
         # — Match complete banner —
         if state.match_complete:
