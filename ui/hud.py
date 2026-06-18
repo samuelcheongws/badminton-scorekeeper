@@ -54,6 +54,6 @@ class HUDRenderer:
             (mw, mh), _ = cv2.getTextSize(msg, FONT, 1.1, 2)
             mx, my = w // 2 - mw // 2, h // 2
             cv2.rectangle(frame, (mx - 20, my - mh - 10), (mx + mw + 20, my + 10), (0, 0, 0), -1)
-            cv2.putText(frame, msg, (mx, my), FONT, 1.1, (0, 229, 255), 2, cv2.LINE_AA)
+            cv2.putText(frame, msg, (mx, my), FONT, 1.1, CYAN, 2, cv2.LINE_AA)
 
         return frame
