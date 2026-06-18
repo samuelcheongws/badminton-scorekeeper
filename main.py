@@ -47,49 +47,50 @@ def main() -> None:
     cv2.namedWindow(WINDOW, cv2.WINDOW_NORMAL)
     cv2.setMouseCallback(WINDOW, on_mouse)
 
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
+    try:
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
 
-        if state["calibrating"]:
-            display = frame.copy()
-            n = len(calibrator.get_corners())
-            cv2.putText(
-                display,
-                f"Click court corners ({n}/4):  top-left -> top-right -> bottom-right -> bottom-left",
-                (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 229, 255), 2, cv2.LINE_AA,
-            )
-            for cx, cy in calibrator.get_corners():
-                cv2.circle(display, (cx, cy), 10, (0, 255, 0), -1)
-            cv2.imshow(WINDOW, display)
-        else:
-            shuttle = tracker.update(frame)
-            detection = None
-            if shuttle is not None:
-                cx, cy = calibrator.to_court_coords(shuttle.x, shuttle.y)
-                detection = Detection(x=cx, y=cy, confidence=shuttle.confidence, timestamp=time.monotonic())
-
-            event = detector.update(detection)
-            if event is not None:
-                score.add_point(event.side)
-
-            cv2.imshow(WINDOW, hud.draw(frame.copy(), score.state))
-
-        key = cv2.waitKey(1) & 0xFF
-        if key in (ord("q"), 27):
-            break
-        elif key == ord("r"):
-            now = time.monotonic()
-            if now - last_r < 1.0:
-                score.reset_match()
-                detector.reset()
+            if state["calibrating"]:
+                display = frame.copy()
+                n = len(calibrator.get_corners())
+                cv2.putText(
+                    display,
+                    f"Click court corners ({n}/4):  top-left -> top-right -> bottom-right -> bottom-left",
+                    (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 229, 255), 2, cv2.LINE_AA,
+                )
+                for cx, cy in calibrator.get_corners():
+                    cv2.circle(display, (cx, cy), 10, (0, 255, 0), -1)
+                cv2.imshow(WINDOW, display)
             else:
-                score.reset_game()
-            last_r = now
+                shuttle = tracker.update(frame)
+                detection = None
+                if shuttle is not None:
+                    cx, cy = calibrator.to_court_coords(shuttle.x, shuttle.y)
+                    detection = Detection(x=cx, y=cy, confidence=shuttle.confidence, timestamp=time.monotonic())
 
-    cap.release()
-    cv2.destroyAllWindows()
+                event = detector.update(detection)
+                if event is not None:
+                    score.add_point(event.side)
+
+                cv2.imshow(WINDOW, hud.draw(frame.copy(), score.state))
+
+            key = cv2.waitKey(1) & 0xFF
+            if key in (ord("q"), 27):
+                break
+            elif key == ord("r"):
+                now = time.monotonic()
+                if now - last_r < 1.0:
+                    score.reset_match()
+                    detector.reset()
+                else:
+                    score.reset_game()
+                last_r = now
+    finally:
+        cap.release()
+        cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     main()
