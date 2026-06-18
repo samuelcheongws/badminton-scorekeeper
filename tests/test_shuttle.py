@@ -46,3 +46,18 @@ def test_detection_coords_scaled_to_frame():
     assert result is not None
     assert result.x == 0
     assert result.y == 0
+
+def test_detection_coords_scaled_centre():
+    # Heatmap peak at centre (INPUT_H//2, INPUT_W//2) should map to frame centre
+    cy, cx = INPUT_H // 2, INPUT_W // 2
+    heatmap = torch.zeros(1, 1, INPUT_H, INPUT_W)
+    heatmap[0, 0, cy, cx] = 0.9
+    t = mock_tracker(heatmap)
+    t.update(blank_frame())
+    t.update(blank_frame())
+    result = t.update(blank_frame())
+    assert result is not None
+    expected_x = round(cx * (1920 - 1) / (INPUT_W - 1))
+    expected_y = round(cy * (1080 - 1) / (INPUT_H - 1))
+    assert result.x == expected_x
+    assert result.y == expected_y
