@@ -21,14 +21,14 @@ Both devices must be signed into the same Apple ID with Wi-Fi and Bluetooth enab
 
 ```bash
 # Install dependencies
-pip install -r requirements.txt
+uv sync
 
 # Download pretrained TrackNetV2 weights from the official repository:
 # https://github.com/yastrebksv/TrackNetV2
 # Place the downloaded .pth file at models/tracknet_weights.pth
 
 # Run
-python main.py
+uv run python main.py
 ```
 
 On launch, you'll be prompted to select match type (singles or doubles). Then the first frame freezes. Click the 4 court corners (top-left → top-right → bottom-right → bottom-left) to calibrate the court boundaries. Live scoring begins immediately after.
